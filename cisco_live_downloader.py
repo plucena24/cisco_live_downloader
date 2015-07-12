@@ -38,6 +38,8 @@ python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C
 
 python cisco_live_downloader.py --username admin -password pass
 
+See README for more usage details, or look at the --help.
+
 Since this is a multi-threaded program, you will not be able to kill it by
 using cntrl-c. Kill the command prompt running the script instead by using
 your OS's task manager.
@@ -61,7 +63,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-u', '--username', help = 'Cisco Live 365 Username', type = str)
 parser.add_argument('-p', '--password', help = 'Cisco Live 365 Password', type = str)
 parser.add_argument('-e', '--event', help ='Cisco Live Event', type = str, default = '2015 San Diego')
-parser.add_argument('-c', '--concurrent', help ='Cuncurrent Downloads', type =int, default = 20)
+parser.add_argument('-c', '--concurrent', help ='Concurrent Downloads', type =int, default = 20)
 parser.add_argument('-d', '--dir', help ='Directory to store downloaded files', type = str)
 args = parser.parse_args()
 
