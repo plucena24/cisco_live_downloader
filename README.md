@@ -43,18 +43,22 @@ You need:
 
 Note: For Windows users - please use doble "\\\\" as path separators:
 
-python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d "C:\\\\users\\\\admin\\\\cisco_live\\\\"
+```python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d "C:\\\\users\\\\admin\\\\cisco_live\\\\"```
 
 Or just use "/"
 
-python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C:/users/admin/cisco_live/
+```python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C:/users/admin/cisco_live/```
 
-python cisco_live_downloader.py --username admin -password pass
+```python cisco_live_downloader.py --username admin -password pass```
+
+```python cisco_live_downloader.py -u admin -p password -e "2015 Milan" -d /home/cisco/Downloads/ -c 8```
 
 Here are some examples of the nomenclature used in past Cisco Live events:
 
 2015 Milan
+
 2014 San Francisco
+
 2013 Orlando
 
 [1]: https://pypi.python.org/pypi/requests "requests"
