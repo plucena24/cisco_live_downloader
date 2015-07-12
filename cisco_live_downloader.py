@@ -2,22 +2,41 @@
 Cisco Live 365 Session downloader command line utility.
 Author: Pablo Lucena, @plucena24
 
-Logs into your Cisco Live 365 account and parses any sessions marked under your 'interests'. By default the tool will download all session materials (pdfs, mp4s) from Cisco Live 2015 San Diego, but this is configurable by passing a different event from the command line.
+Logs into your Cisco Live 365 account and parses any sessions marked under
+your 'interests'. By default the tool will download all session materials
+(pdfs, mp4s) from Cisco Live 2015 San Diego, but this is configurable by
+passing a different event from the command line.
 
-Uses multiple threads to download mp4/pdfs concurrently. By default 20 threads will be spawned, meaning 20 downloads will be kicked off at the time time. The number of threads is also configurable.
+Uses multiple threads to download mp4/pdfs concurrently. By default 20 threads
+will be spawned, meaning 20 downloads will be kicked off at the time time. The
+number of threads is also configurable.
 
-The downloads are efficient, by chunking the downloaded files every 1024MB and writing to disk. None of previous downloaded chunks are kept in memory - similar to a web browser download.
+The downloads are efficient, by chunking the downloaded files every 1024MB and
+writing to disk. None of previous downloaded chunks are kept in memory -
+similar to a web browser download.
 
 Requires two third party libraries - BeautifulSoup and requests.
 
 pip install BeautifulSoup
 pip install requests
 
-For efficiency, the script checks the configured directorty (current directorty by default) for any existing .mp4s that have already been downloaded. This is to prevent having to re-download a file that has been previously downloaded during a previous execution of the script. If for example you ran the script, but added more sessions under your 'interests'.
+For efficiency, the script checks the configured directorty (current
+directorty by default) for any existing .mp4s that have already been
+downloaded. This is to prevent having to re-download a file that has been
+previously downloaded during a previous execution of the script. If for
+example you ran the script, but added more sessions under your 'interests'.
 
 usage:
 
-python cisco_live_downloader.py -u username -p password -e 2015 San Diego -d C:\\users\\admin\\cisco_live\\
+Note: For Windows users - please use doble "\\" as path separators:
+
+python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C:\\users\\admin\\cisco_live\\
+
+Or just use "/"
+
+python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C:/users/admin/cisco_live/
+
+python cisco_live_downloader.py --username admin -password pass
 
 '''
 
@@ -141,6 +160,9 @@ results   = pool.map(get_links, links)
 results = [res for res in results if res['name'] + '.mp4' not in skip()]
 
 print('About to download {} resources. This may take a long time depending on your bandwidth...'.format(len(results)))
+
+print("\n"*3)
+print("#"* 80)
 
 downloads = pool.map(download_resource, enumerate(results, 1))
 
