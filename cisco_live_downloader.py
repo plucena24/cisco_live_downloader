@@ -38,6 +38,14 @@ python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C
 
 python cisco_live_downloader.py --username admin -password pass
 
+Since this is a multi-threaded program, you will not be able to kill it by
+using cntrl-c. Kill the command prompt running the script instead by using
+your OS's task manager.
+
+Be sure to delete any partial download from the folder where the script is
+downloading to. Currently working on a way to detect partial downloads and re-
+download instead of skip. (There is an open issue for this.)
+
 '''
 
 import re
@@ -45,6 +53,7 @@ import requests
 import os
 import argparse
 import sys
+import json
 from multiprocessing.dummy import Pool as ThreadPool
 from BeautifulSoup import BeautifulSoup
 
@@ -152,18 +161,32 @@ def skip():
     for f in files_to_download():
         if f in check_current_files():
             yield f
-            
 
+def print_spacer():
+    print("\n"*3)
+    print("#"* 80)
+    print("\n"*3)
+
+# start workers and get resource links
 pool      = ThreadPool(pool_workers)
 results   = pool.map(get_links, links)
 skippable = list(skip())
 results   = [res for res in results if res['name'] + '.mp4' not in skippable]
 
+if len(results) == 0:
+    sys.exit("Either the credentials provided are wrong, or you currently don't have any saved interests under this account.")
+
+print(json.dumps(results, indent=4))
+
+print_spacer()
+
 print('''About to download {} resources. This may take a long time depending on your bandwidth...'''.format(len(results)))
 
-print("\n"*3)
-print("#"* 80)
+print_spacer()
 
+# Use workers to download resources
 downloads = pool.map(download_resource, enumerate(results, 1))
+
+print_spacer()
 
 print('Download job finished. Enjoy! =)')
