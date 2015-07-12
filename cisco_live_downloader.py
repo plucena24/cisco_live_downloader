@@ -152,10 +152,11 @@ def skip():
     for f in files_to_download():
         if f in check_current_files():
             yield f
-
-pool = ThreadPool(pool_workers)
+            
+skippable = list(skip())
+pool      = ThreadPool(pool_workers)
 results   = pool.map(get_links, links)
-results = [res for res in results if res['name'] + '.mp4' not in skip()]
+results   = [res for res in results if res['name'] + '.mp4' not in skippable]
 
 print('''About to download {} resources. This may take a long time depending on your bandwidth...'''.format(len(results)))
 
