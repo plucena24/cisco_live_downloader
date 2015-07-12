@@ -41,9 +41,9 @@ You need:
 
 ## Usage
 
-Note: For Windows users - please use doble "\\" as path separators:
+Note: For Windows users - please use doble "\\\\" as path separators:
 
-python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C:\\users\\admin\\cisco_live\\
+python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d "C:\\\\users\\\\admin\\\\cisco_live\\\\"
 
 Or just use "/"
 
