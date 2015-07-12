@@ -50,15 +50,10 @@ from BeautifulSoup import BeautifulSoup
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-u', '--username', help='Cisco Live 365 Username', type=str)
-
 parser.add_argument('-p', '--password', help='Cisco Live 365 Password', type=str)
-
 parser.add_argument('-e', '--event', help='Cisco Live Event', type=str, default= '2015 San Diego')
-
 parser.add_argument('-c', '--concurrent', help='Cuncurrent Downloads', type=int, default = 20)
-
 parser.add_argument('-d', '--dir', help='Directory to store downloaded files', type=str)
-
 args = parser.parse_args()
 
 if not (args.username or args.password):
@@ -115,9 +110,12 @@ def get_links(resource):
 
 def download_resource((n_job, resource)):
 
-    '''session pdf and mp4 downloader. uses little memory by chunking the output
+    '''session pdf and mp4 downloader. uses little memory by chunking the
+    output.
 
-       if the session does not have a corresponding mp4, the pdf will still be downloaded.
+    if the session does not have a corresponding mp4, the pdf will still be
+    downloaded.
+
     '''
 
     print('Starting job_id {}. Session {}'.format(n_job, resource['name']))
@@ -159,7 +157,7 @@ pool = ThreadPool(pool_workers)
 results   = pool.map(get_links, links)
 results = [res for res in results if res['name'] + '.mp4' not in skip()]
 
-print('About to download {} resources. This may take a long time depending on your bandwidth...'.format(len(results)))
+print('''About to download {} resources. This may take a long time depending on your bandwidth...'''.format(len(results)))
 
 print("\n"*3)
 print("#"* 80)
