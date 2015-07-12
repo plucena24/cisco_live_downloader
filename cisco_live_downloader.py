@@ -74,6 +74,8 @@ password     = args.password
 event        = args.event
 
 if args.dir:
+    if not os.path.isdir(os.path.abspath(args.dir)):
+        os.mkdir(os.path.abspath(args.dir))
     os.chdir(os.path.abspath(args.dir))
 
 session = requests.Session()
