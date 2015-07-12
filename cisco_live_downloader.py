@@ -80,7 +80,7 @@ soup = BeautifulSoup(html_sess.content)
 
 links = list()
 for link in soup.findAll('a'):
-    if '2015 San Diego' in link.parent.text:
+    if event in link.parent.text:
         links.append(dict(name= link.text, resource_link= 'https://www.ciscolive.com/online/connect/' + link['href']))
 
 def name_scrubber(name):
