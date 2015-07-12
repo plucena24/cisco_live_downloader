@@ -19,6 +19,7 @@ similar to a web browser download.
 Requires two third party libraries - BeautifulSoup and requests.
 
 pip install BeautifulSoup
+
 pip install requests
 
 For efficiency, the script checks the configured directorty (current
@@ -50,6 +51,11 @@ python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C
 
 python cisco_live_downloader.py --username admin -password pass
 
+Here are some examples of the nomenclature used in past Cisco Live events:
+
+2015 Milan
+2014 San Francisco
+2013 Orlando
 
 [1]: https://pypi.python.org/pypi/requests "requests"
 [2]: https://pypi.python.org/pypi/BeautifulSoup "BeautifulSoup"
