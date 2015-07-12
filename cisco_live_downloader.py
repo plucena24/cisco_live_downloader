@@ -58,11 +58,11 @@ from multiprocessing.dummy import Pool as ThreadPool
 from BeautifulSoup import BeautifulSoup
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-u', '--username', help='Cisco Live 365 Username', type=str)
-parser.add_argument('-p', '--password', help='Cisco Live 365 Password', type=str)
-parser.add_argument('-e', '--event', help='Cisco Live Event', type=str, default= '2015 San Diego')
-parser.add_argument('-c', '--concurrent', help='Cuncurrent Downloads', type=int, default = 20)
-parser.add_argument('-d', '--dir', help='Directory to store downloaded files', type=str)
+parser.add_argument('-u', '--username', help = 'Cisco Live 365 Username', type = str)
+parser.add_argument('-p', '--password', help = 'Cisco Live 365 Password', type = str)
+parser.add_argument('-e', '--event', help ='Cisco Live Event', type = str, default = '2015 San Diego')
+parser.add_argument('-c', '--concurrent', help ='Cuncurrent Downloads', type =int, default = 20)
+parser.add_argument('-d', '--dir', help ='Directory to store downloaded files', type = str)
 args = parser.parse_args()
 
 if not (args.username or args.password):
@@ -90,7 +90,7 @@ soup = BeautifulSoup(html_sess.content)
 links = list()
 for link in soup.findAll('a'):
     if event in link.parent.text:
-        links.append(dict(name= link.text, resource_link= 'https://www.ciscolive.com/online/connect/' + link['href']))
+        links.append(dict(name=link.text, resource_link='https://www.ciscolive.com/online/connect/' + link['href']))
 
 def name_scrubber(name):
     '''remove illegal filename characters from names'''
@@ -103,28 +103,31 @@ def name_scrubber(name):
 def get_links(resource):
     '''get session pdf and mp4 links'''
 
-    html_video = session.get(resource['resource_link'])
-    video_soup = BeautifulSoup(html_video.content)
-    video_field = video_soup.find('ul', {'id' : 'mediaList'})
-    pdf_field = video_soup.find('ul', {'id' : 'fileDownloadList'})
+    html_video     = session.get(resource['resource_link'])
+    resource_soup  = BeautifulSoup(html_video.content)
+    video_field    = resource_soup.find('ul', {'id' : 'mediaList'})
+    pdf_field      = resource_soup.find('ul', {'id' : 'fileDownloadList'})
+
     try:
         resource['video_link'] = video_field.li.a['data-url']
     except AttributeError:
         resource['video_link'] = None
+
     try:
-        resource['pdf_link']= pdf_field.li['data-url']
+        resource['pdf_link'] = pdf_field.li['data-url']
     except AttributeError:
         resource['pdf_link'] = None
+
     return resource
 
 def download_resource((n_job, resource)):
 
-    '''session pdf and mp4 downloader. uses little memory by chunking the
+    '''
+    session pdf and mp4 downloader. uses little memory by chunking the
     output.
 
     if the session does not have a corresponding mp4, the pdf will still be
     downloaded.
-
     '''
 
     print('Starting job_id {}. Session {}'.format(n_job, resource['name']))
@@ -138,7 +141,7 @@ def download_resource((n_job, resource)):
                     vfh.flush()
 
     if resource['pdf_link']:
-        pdf   = requests.get(resource['pdf_link'], stream=True)
+        pdf = requests.get(resource['pdf_link'], stream=True)
         with open(name_scrubber(resource['name'])+'.pdf', 'wb') as pfh:
             for chunk in pdf.iter_content(chunk_size=1024):
                 if chunk:
@@ -146,7 +149,6 @@ def download_resource((n_job, resource)):
                     pfh.flush()
 
     print('Finished job_id {}. Session {}'.format(n_job, resource['name']))
-
 
 def check_current_files():
     for root, dirs, files in os.walk(os.curdir):
@@ -162,12 +164,6 @@ def skip():
         if f in check_current_files():
             yield f
 
-def print_spacer():
-    print("\n"*3)
-    print("#"* 80)
-    print("\n"*3)
-
-# start workers and get resource links
 pool      = ThreadPool(pool_workers)
 results   = pool.map(get_links, links)
 skippable = list(skip())
@@ -178,15 +174,14 @@ if len(results) == 0:
 
 print(json.dumps(results, indent=4))
 
-print_spacer()
+print("\n"*3 + "#"*80 + "\n"*3)
 
 print('''About to download {} resources. This may take a long time depending on your bandwidth...'''.format(len(results)))
 
-print_spacer()
+print("\n"*3 + "#"*80 + "\n"*3)
 
-# Use workers to download resources
 downloads = pool.map(download_resource, enumerate(results, 1))
 
-print_spacer()
+print("\n"*3 + "#"*80 + "\n"*3)
 
 print('Download job finished. Enjoy! =)')
