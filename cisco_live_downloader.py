@@ -44,9 +44,11 @@ Since this is a multi-threaded program, you will not be able to kill it by
 using cntrl-c. Kill the command prompt running the script instead by using
 your OS's task manager.
 
-Be sure to delete any partial download from the folder where the script is
-downloading to. Currently working on a way to detect partial downloads and re-
-download instead of skip. (There is an open issue for this.)
+`cisco_live_downloader` is able to detect if the script has been previously ran
+by storing a text file on the current directorty with the `resource_id` of any
+file that was fully downloaded successfully and saved to disk. A check is made
+prior to beginning the download process, such that files that were already
+downloaded are not over-written and re-downloaded.
 
 '''
 
