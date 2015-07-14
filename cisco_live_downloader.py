@@ -194,8 +194,9 @@ print("\n"*3 + "#"*80 + "\n"*3)
 print('''About to download {} resources. This may take a long time depending on your bandwidth...'''.format(len(results)))
 print("\n"*3 + "#"*80 + "\n"*3)
 
+files_downloaded = []
+
 try:
-    files_downloaded = []
     pool.map(download_resource, enumerate(results, 1))
 except Exception as e:
     create_download_log()
