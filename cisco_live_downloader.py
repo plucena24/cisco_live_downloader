@@ -38,16 +38,6 @@ python cisco_live_downloader.py -u username -p password -e "2015 San Diego" -d C
 
 python cisco_live_downloader.py --username admin -password pass
 
-See README for more usage details, or look at the --help.
-
-Since this is a multi-threaded program, you will not be able to kill it by
-using cntrl-c. Kill the command prompt running the script instead by using
-your OS's task manager.
-
-Be sure to delete any partial download from the folder where the script is
-downloading to. Currently working on a way to detect partial downloads and re-
-download instead of skip. (There is an open issue for this.)
-
 '''
 
 import re
@@ -55,16 +45,16 @@ import requests
 import os
 import argparse
 import sys
-import json
 from multiprocessing.dummy import Pool as ThreadPool
 from BeautifulSoup import BeautifulSoup
+from itertools import chain
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-u', '--username', help = 'Cisco Live 365 Username', type = str)
-parser.add_argument('-p', '--password', help = 'Cisco Live 365 Password', type = str)
-parser.add_argument('-e', '--event', help ='Cisco Live Event', type = str, default = '2015 San Diego')
-parser.add_argument('-c', '--concurrent', help ='Concurrent Downloads', type =int, default = 20)
-parser.add_argument('-d', '--dir', help ='Directory to store downloaded files', type = str)
+parser.add_argument('-u', '--username', help='Cisco Live 365 Username', type=str)
+parser.add_argument('-p', '--password', help='Cisco Live 365 Password', type=str)
+parser.add_argument('-e', '--event', help='Cisco Live Event', type=str, default= '2015 San Diego')
+parser.add_argument('-c', '--concurrent', help='Cuncurrent Downloads', type=int, default = 20)
+parser.add_argument('-d', '--dir', help='Directory to store downloaded files', type=str)
 args = parser.parse_args()
 
 if not (args.username or args.password):
@@ -76,8 +66,6 @@ password     = args.password
 event        = args.event
 
 if args.dir:
-    if not os.path.isdir(os.path.abspath(args.dir)):
-        os.mkdir(os.path.abspath(args.dir))
     os.chdir(os.path.abspath(args.dir))
 
 session = requests.Session()
@@ -94,7 +82,7 @@ soup = BeautifulSoup(html_sess.content)
 links = list()
 for link in soup.findAll('a'):
     if event in link.parent.text:
-        links.append(dict(name=link.text, resource_link='https://www.ciscolive.com/online/connect/' + link['href']))
+        links.append(dict(name= link.text, resource_link= 'https://www.ciscolive.com/online/connect/' + link['href']))
 
 def name_scrubber(name):
     '''remove illegal filename characters from names'''
@@ -107,52 +95,45 @@ def name_scrubber(name):
 def get_links(resource):
     '''get session pdf and mp4 links'''
 
-    html_video     = session.get(resource['resource_link'])
-    resource_soup  = BeautifulSoup(html_video.content)
-    video_field    = resource_soup.find('ul', {'id' : 'mediaList'})
-    pdf_field      = resource_soup.find('ul', {'id' : 'fileDownloadList'})
-
+    html_video = session.get(resource['resource_link'])
+    video_soup = BeautifulSoup(html_video.content)
+    video_field = video_soup.find('ul', {'id' : 'mediaList'})
+    pdf_field = video_soup.find('ul', {'id' : 'fileDownloadList'})
     try:
-        resource['video_link'] = video_field.li.a['data-url']
+        resource['video_link'] = {"name":resource['name'],"link":video_field.li.a['data-url']}
     except AttributeError:
         resource['video_link'] = None
-
     try:
-        resource['pdf_link'] = pdf_field.li['data-url']
+        resource['pdf_link'] = {"name":resource['name'],"link":pdf_field.li['data-url']}
     except AttributeError:
         resource['pdf_link'] = None
-
     return resource
 
 def download_resource((n_job, resource)):
 
-    '''
-    session pdf and mp4 downloader. uses little memory by chunking the
+    '''session pdf and mp4 downloader. uses little memory by chunking the
     output.
 
     if the session does not have a corresponding mp4, the pdf will still be
     downloaded.
+
     '''
+    resource_identifier = name_scrubber(resource["name"] + "." + resource["link"].split(".")[-1])
+    print('Starting job_id {}. Session {}'.format(n_job, resource_identifier))
 
-    print('Starting job_id {}. Session {}'.format(n_job, resource['name']))
+    try:
+      video = requests.get(resource["link"], stream=True)
+      with open(resource_identifier, 'wb') as vfh:
+          for chunk in video.iter_content(chunk_size=1024):
+              if chunk:
+                  vfh.write(chunk)
+                  vfh.flush()
+    except:
+        return
 
-    if resource['video_link']:
-        video = requests.get(resource['video_link'], stream=True)
-        with open(name_scrubber(resource['name'])+'.mp4', 'wb') as vfh:
-            for chunk in video.iter_content(chunk_size=1024):
-                if chunk:
-                    vfh.write(chunk)
-                    vfh.flush()
+    files_downloaded.append(resource["link"])
+    print('Finished job_id {}. Session {}'.format(n_job, resource_identifier))
 
-    if resource['pdf_link']:
-        pdf = requests.get(resource['pdf_link'], stream=True)
-        with open(name_scrubber(resource['name'])+'.pdf', 'wb') as pfh:
-            for chunk in pdf.iter_content(chunk_size=1024):
-                if chunk:
-                    pfh.write(chunk)
-                    pfh.flush()
-
-    print('Finished job_id {}. Session {}'.format(n_job, resource['name']))
 
 def check_current_files():
     for root, dirs, files in os.walk(os.curdir):
@@ -167,25 +148,20 @@ def skip():
     for f in files_to_download():
         if f in check_current_files():
             yield f
+            
 
 pool      = ThreadPool(pool_workers)
 results   = pool.map(get_links, links)
 skippable = list(skip())
-results   = [res for res in results if res['name'] + '.mp4' not in skippable]
-
-if len(results) == 0:
-    sys.exit("Either the credentials provided are wrong, or you currently don't have any saved interests under this account.")
-
-print(json.dumps(results, indent=4))
-
-print("\n"*3 + "#"*80 + "\n"*3)
+results   = list(chain.from_iterable( (res['video_link'],res['pdf_link']) for res in results if res['name'] + '.mp4' not in skippable))
+results   = [resource for resource in results if resource is not None] # no need to start a thread for a non-existent resource
 
 print('''About to download {} resources. This may take a long time depending on your bandwidth...'''.format(len(results)))
 
-print("\n"*3 + "#"*80 + "\n"*3)
+print("\n"*3)
+print("#"* 80)
 
-downloads = pool.map(download_resource, enumerate(results, 1))
-
-print("\n"*3 + "#"*80 + "\n"*3)
-
-print('Download job finished. Enjoy! =)')
+files_downloaded = []
+pool.map(download_resource, enumerate(results, 1))
+for file_downloaded in files_downloaded:
+    print("Downloaded: " + file_downloaded)
