@@ -149,7 +149,7 @@ def download_resource((n_job, resource)):
 
     resource_id = resource['resource_id']
 
-    print('Starting job_id {}. Session {}'.format(n_job, resource_id))
+    print('Starting job_id {0}. Session {1}'.format(n_job, resource_id))
 
     try:
         download = requests.get(resource['link'], stream=True)
@@ -164,7 +164,7 @@ def download_resource((n_job, resource)):
 
     files_downloaded.append(resource_id)
 
-    print('Finished job_id {}. Session {}'.format(n_job, resource_id))
+    print('Finished job_id {0}. Session {1}'.format(n_job, resource_id))
 
 def create_download_log():
     '''create download log'''
@@ -188,7 +188,7 @@ if os.path.isfile(download_log):
 # no need to start a thread for a non-existent resource
 results   = [res for res in results if res is not None and res['resource_id'] not in skippable]
 
-if len(results) == 0:
+if not results:
     sys.exit("Either the credentials provided are wrong, or you currently don't have any saved interests under this account.")
 
 print(json.dumps(results, indent=4))
